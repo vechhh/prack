@@ -1,21 +1,104 @@
+
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>личный кабинет</title>
-     <link rel="stylesheet" href="{% static 'css\style.css' %}">
+    <title>Личный кабинет</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
     <header>
-        <a href="{% url 'main' %}"><img src="{% static 'img/Nerpa.png' %}" alt="" height="100" width="100" style="border-radius: 50%;"></a>
+        <a href="{% url 'main' %}">
+            <img src="{% static 'img/Nerpa.png' %}" alt="NerpaMed" height="100" width="100" style="border-radius: 50%;">
+        </a>
         <div class="men">
             <a href="{% url 'lk' %}">Личный кабинет</a>
             <a href="{% url 'med' %}">Наши врачи</a>
             <a href="{% url 'table' %}">Расписание</a>
-            <a href="{% url 'bxod' %}">Вход</a>
+            <a href="{% url 'logout' %}">Выход</a>
         </div>
     </header>
+
+    <main>
+        <h1>Личный кабинет</h1>
+
+        <p>Здравствуйте, {{ request.user.first_name|default:request.user.username }}!</p>
+
+        {% if role == 'patient' %}
+            <h2>Кабинет пациента</h2>
+
+            {% if patient %}
+                <p>Телефон: {{ patient.phone }}</p>
+                <p>Дата рождения: {{ patient.birth_date|default:"Не указана" }}</p>
+                <p>Адрес: {{ patient.address|default:"Не указан" }}</p>
+            {% endif %}
+
+            <h3>Мои записи</h3>
+
+            {% if appointments %}
+                {% for appointment in appointments %}
+                    <div>
+                        <p>Талон №{{ appointment.ticket_number }}</p>
+                        <p>Врач: {{ appointment.slot.doctor.user.get_full_name }}</p>
+                        <p>Специальность: {{ appointment.slot.doctor.specialty.name }}</p>
+                        <p>Дата и время: {{ appointment.slot.start_time|date:"d.m.Y H:i" }}</p>
+                        <p>Статус: {{ appointment.get_status_display }}</p>
+                    </div>
+                    <hr>
+                {% endfor %}
+            {% else %}
+                <p>У вас пока нет записей.</p>
+            {% endif %}
+
+        {% elif role == 'doctor' %}
+            <h2>Кабинет врача</h2>
+
+            {% if doctor %}
+                <p>Специальность: {{ doctor.specialty.name }}</p>
+                <p>Телефон: {{ doctor.phone }}</p>
+                <p>Стаж: {{ doctor.experience }} лет</p>
+                <p>Кабинет: {{ doctor.room }}</p>
+            {% endif %}
+
+            <h3>Мои пациенты и приёмы</h3>
+
+            {% if appointments %}
+                {% for appointment in appointments %}
+                    <div>
+                        <p>Пациент: {{ appointment.patient.user.get_full_name }}</p>
+                        <p>Дата и время: {{ appointment.slot.start_time|date:"d.m.Y H:i" }}</p>
+                        <p>Статус: {{ appointment.get_status_display }}</p>
+                    </div>
+                    <hr>
+                {% endfor %}
+            {% else %}
+                <p>Приёмов пока нет.</p>
+            {% endif %}
+
+        {% elif role == 'admin' %}
+            <h2>Панель администратора</h2>
+            <p>Всего записей: {{ appointments|length }}</p>
+
+            {% for appointment in appointments %}
+                <div>
+                    <p>Талон №{{ appointment.ticket_number }}</p>
+                    <p>Пациент: {{ appointment.patient.user.get_full_name }}</p>
+                    <p>Врач: {{ appointment.slot.doctor.user.get_full_name }}</p>
+                    <p>Дата и время: {{ appointment.slot.start_time|date:"d.m.Y H:i" }}</p>
+                    <p>Статус: {{ appointment.get_status_display }}</p>
+                </div>
+                <hr>
+            {% empty %}
+                <p>Записей пока нет.</p>
+            {% endfor %}
+
+        {% else %}
+            <p>Для вашего аккаунта не настроена роль. Обратитесь к администратору.</p>
+        {% endif %}
+
+        <a href="{% url 'table' %}">Перейти к расписанию записей</a>
+    </main>
 </body>
 </html>

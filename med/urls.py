@@ -26,4 +26,5 @@ urlpatterns = [
     path('bxod/', views.bxod, name='bxod'),
     path('lk/', views.lk, name='lk'),
     path('table/', views.table, name='table'),
+    path('logout/', views.logout_view, name='logout'),
 ]
