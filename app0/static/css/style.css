@@ -1,0 +1,17 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+header{
+    display: flex;
+    gap: 400px;
+    align-items: center;
+    margin-top: 50px;
+    margin-left: 20px;
+}
+.men{
+     display: flex;
+     gap: 40px;
+     text-decoration: none;
+}

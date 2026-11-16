@@ -1,0 +1,21 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>личный кабинет</title>
+     <link rel="stylesheet" href="{% static 'css\style.css' %}">
+</head>
+<body>
+    <header>
+        <a href="{% url 'main' %}"><img src="{% static 'img/Nerpa.png' %}" alt="" height="100" width="100" style="border-radius: 50%;"></a>
+        <div class="men">
+            <a href="{% url 'lk' %}">Личный кабинет</a>
+            <a href="{% url 'med' %}">Наши врачи</a>
+            <a href="{% url 'table' %}">Расписание</a>
+            <a href="{% url 'bxod' %}">Вход</a>
+        </div>
+    </header>
+</body>
+</html>
