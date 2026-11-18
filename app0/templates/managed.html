@@ -1,0 +1,141 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление врачами</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header>
+        <a href="{% url 'main' %}">
+            <img src="{% static 'img/Nerpa.png' %}" alt="NerpaMed" height="100" width="100" style="border-radius: 50%;">
+        </a>
+        <div class="men">
+            <a href="{% url 'lk' %}">Личный кабинет</a>
+            <a href="{% url 'med' %}">Наши врачи</a>
+            <a href="{% url 'table' %}">Расписание</a>
+            <a href="{% url 'logout' %}">Выход</a>
+        </div>
+    </header>
+
+    <main>
+        <h1>Управление врачами</h1>
+
+        {% if messages %}
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+
+        {% if error %}
+            <p>{{ error }}</p>
+        {% endif %}
+
+        <h2>Добавить специальность</h2>
+
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_specialty">
+
+            <p>
+                <label>Название специальности:</label><br>
+                <input type="text" name="specialty_name" required>
+            </p>
+
+            <p>
+                <label>Описание:</label><br>
+                <textarea name="specialty_description"></textarea>
+            </p>
+
+            <button type="submit">Добавить специальность</button>
+        </form>
+
+        <hr>
+
+        <h2>Добавить врача</h2>
+
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_doctor">
+
+            <p>
+                <label>Имя:</label><br>
+                <input type="text" name="first_name" required>
+            </p>
+
+            <p>
+                <label>Фамилия:</label><br>
+                <input type="text" name="last_name" required>
+            </p>
+
+            <p>
+                <label>Логин для входа:</label><br>
+                <input type="text" name="username" required>
+            </p>
+
+            <p>
+                <label>Электронная почта:</label><br>
+                <input type="email" name="email" required>
+            </p>
+
+            <p>
+                <label>Пароль:</label><br>
+                <input type="password" name="password" required>
+            </p>
+
+            <p>
+                <label>Телефон:</label><br>
+                <input type="text" name="phone">
+            </p>
+
+            <p>
+                <label>Специальность:</label><br>
+                <select name="specialty" required>
+                    <option value="">Выберите специальность</option>
+                    {% for specialty in specialties %}
+                        <option value="{{ specialty.id }}">
+                            {{ specialty.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </p>
+
+            <p>
+                <label>Стаж работы (лет):</label><br>
+                <input type="number" name="experience" min="0" value="0">
+            </p>
+
+            <p>
+                <label>Кабинет:</label><br>
+                <input type="text" name="room">
+            </p>
+
+            <p>
+                <label>Описание врача:</label><br>
+                <textarea name="description"></textarea>
+            </p>
+
+            <button type="submit">Добавить врача</button>
+        </form>
+
+        <hr>
+
+        <h2>Список врачей</h2>
+
+        {% for doctor in doctors %}
+            <div>
+                <h3>{{ doctor.user.get_full_name }}</h3>
+                <p>Специальность: {{ doctor.specialty.name }}</p>
+                <p>Стаж: {{ doctor.experience }} лет</p>
+                <p>Кабинет: {{ doctor.room }}</p>
+            </div>
+            <hr>
+        {% empty %}
+            <p>Врачи пока не добавлены.</p>
+        {% endfor %}
+    </main>
+</body>
+</html>

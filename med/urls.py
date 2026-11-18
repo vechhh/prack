@@ -27,4 +27,6 @@ urlpatterns = [
     path('lk/', views.lk, name='lk'),
     path('table/', views.table, name='table'),
     path('logout/', views.logout_view, name='logout'),
+    path('manage/', views.manage_schedule, name='manage'),
+    path('doctors-manage/', views.manage_doctors, name='manage_doctors'),
 ]
