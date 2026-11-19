@@ -1,21 +1,103 @@
+
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Главная страница</title>
-    <link rel="stylesheet" href="{% static 'css\style.css' %}">
+    <title>NerpaMed — Главная</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <header>
-        <a href="{% url 'main' %}"><img src="{% static 'img/Nerpa.png' %}" alt="" height="100" width="100" style="border-radius: 50%;"></a>
-        <div class="men">
-            <a href="{% url 'lk' %}">Личный кабинет</a>
-            <a href="{% url 'med' %}">Наши врачи</a>
-            <a href="{% url 'table' %}">Расписание</a>
-            <a href="{% url 'bxod' %}">Вход</a>
+
+<header class="header">
+    <a href="{% url 'main' %}">
+        <img src="{% static 'img/Nerpa.png' %}" alt="NerpaMed" class="logo">
+    </a>
+
+    <nav class="men">
+        <a href="{% url 'lk' %}">Личный кабинет</a>
+        <a href="{% url 'med' %}">Наши врачи</a>
+        <a href="{% url 'table' %}">Расписание</a>
+        <a href="{% url 'bxod' %}" class="login-btn">Вход</a>
+    </nav>
+</header>
+
+<main>
+
+    <section class="hero">
+        <div class="hero-text">
+            <h1>Бережное лечение<br>с заботой о каждом</h1>
+            <p>Современная медицина, внимательные<br>
+            специалисты и комфортная атмосфера.</p>
+            <a href="{% url 'table' %}" class="blue-btn">Записаться на приём</a>
         </div>
-    </header>
+
+        <div class="hero-image">
+            <img src="{% static 'img/image 11.png' %}" alt="NerpaMed">
+        </div>
+    </section>
+
+    <section class="features">
+        <a href="{% url 'table' %}" class="feature-card">
+            <div class="feature-icon"><img src="{% static 'img/andrsrxn_calendar-days.png' %}" alt=""></div>
+            <p>Выберите удобное время</p>
+        </a>
+
+        <a href="{% url 'med' %}" class="feature-card">
+            <div class="feature-icon"><img src="{% static 'img/material-symbols-light_mixture-med-outline-rounded.png' %}" alt=""></div>
+            <p>Все направления клиники</p>
+        </a>
+
+        <a href="{% url 'med' %}" class="feature-card">
+            <div class="feature-icon">♡</div>
+            <p>Опытные специалисты</p>
+        </a>
+    </section>
+
+    <p class="green-caption">
+        Найдите своего врача вместе с <b>NerpaMed!</b>
+    </p>
+
+    <section class="bottom-banner">
+        <div>
+            <h2>Не откладывайте заботу<br>о себе</h2>
+            <a href="{% url 'med' %}" class="blue-btn">Выбрать врача</a>
+        </div>
+
+        <p>
+            Выберите подходящего<br>
+            специалиста и запишитесь на<br>
+            приём в удобное для вас время.
+        </p>
+    </section>
+
+</main>
+
+<footer class="footer">
+    <a href="{% url 'main' %}">
+        <img src="{% static 'img/Nerpa.png' %}" alt="NerpaMed" class="footer-logo">
+    </a>
+
+    <div class="footer-column">
+        <a href="{% url 'lk' %}">Личный кабинет</a>
+        <a href="{% url 'med' %}">Наши врачи</a>
+        <a href="{% url 'table' %}">Расписание</a>
+    </div>
+
+    <div class="footer-column">
+        <a href="{% url 'main' %}">О нас</a>
+        <a href="{% url 'main' %}">Цены</a>
+    </div>
+
+    <div class="footer-column">
+        <a href="{% url 'main' %}">Контакты</a>
+    </div>
+
+    <div class="footer-column">
+        <a href="{% url 'bxod' %}" class="footer-login">Вход</a>
+    </div>
+</footer>
+
 </body>
 </html>

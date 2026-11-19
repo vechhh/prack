@@ -1,0 +1,95 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Медицинская карта</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header>
+        <a href="{% url 'main' %}">
+            <img src="{% static 'img/Nerpa.png' %}" alt="NerpaMed" height="100" width="100" style="border-radius: 50%;">
+        </a>
+        <div class="men">
+            <a href="{% url 'lk' %}">Личный кабинет</a>
+            <a href="{% url 'med' %}">Наши врачи</a>
+            <a href="{% url 'table' %}">Расписание</a>
+           <a href="{% url 'logout' %}" class="login-btn">Выход</a>
+        </div>
+    </header>
+
+    <main class="mr-page">
+        <h1 class="mr-title">Медицинская карта пациента</h1>
+
+        <div class="mr-info">
+            <p>Пациент: <strong>{{ appointment.patient.user.get_full_name }}</strong></p>
+            <p>Дата приёма: <strong>{{ appointment.slot.start_time|date:"d.m.Y H:i" }}</strong></p>
+        </div>
+
+        {% for message in messages %}
+            <p class="mr-message">{{ message }}</p>
+        {% endfor %}
+
+        <section class="mr-section">
+            <h2>Диагноз и рекомендации</h2>
+
+            <form method="post" class="mr-form">
+                {% csrf_token %}
+
+                <div class="mr-field">
+                    <label>Диагноз:</label>
+                    <textarea name="diagnosis" required>{{ record.diagnosis|default:"" }}</textarea>
+                </div>
+
+                <div class="mr-field">
+                    <label>Заметки врача:</label>
+                    <textarea name="notes">{{ record.notes|default:"" }}</textarea>
+                </div>
+
+                <div class="mr-field">
+                    <label>Рекомендации:</label>
+                    <textarea name="recommendations">{{ record.recommendations|default:"" }}</textarea>
+                </div>
+
+                <h2 class="mr-subtitle">Добавить рецепт</h2>
+
+                <div class="mr-field">
+                    <label>Название лекарства:</label>
+                    <input type="text" name="medication">
+                </div>
+
+                <div class="mr-field">
+                    <label>Дозировка:</label>
+                    <input type="text" name="dosage">
+                </div>
+
+                <div class="mr-field">
+                    <label>Инструкции по применению:</label>
+                    <textarea name="instructions"></textarea>
+                </div>
+
+                <button type="submit" class="mr-button">Сохранить</button>
+            </form>
+        </section>
+
+        <section class="mr-section">
+            <h2>Добавленные рецепты</h2>
+
+            {% for prescription in prescriptions %}
+                <div class="mr-prescription">
+                    <p>Лекарство: <strong>{{ prescription.medication }}</strong></p>
+                    <p>Дозировка: {{ prescription.dosage }}</p>
+                    <p>Инструкции: {{ prescription.instructions|default:"Не указаны" }}</p>
+                </div>
+            {% empty %}
+                <p class="mr-empty">Рецептов пока нет.</p>
+            {% endfor %}
+        </section>
+
+        <a href="{% url 'lk' %}" class="mr-back">Вернуться в личный кабинет</a>
+    </main>
+</body>
+</html>

@@ -1,5 +1,4 @@
-
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -7,11 +6,9 @@ from django.contrib import messages
 from django.utils.dateparse import parse_date, parse_datetime
 from django.db import transaction
 from django.db.models import Q
-import uuid
 from django.utils import timezone
-from django.db import IntegrityError
+from django.http import HttpResponseForbidden
 import uuid
-from django.utils import timezone
 
 from .models import (
     UserProfile,
@@ -20,14 +17,15 @@ from .models import (
     Appointment,
     Specialty,
     TimeSlot,
+    MedicalRecord,
+    Prescription,
 )
 
-# Главная страница
+
 def main(request):
     return render(request, 'main.html')
 
 
-# Каталог врачей
 def med(request):
     doctors = DoctorProfile.objects.select_related(
         'user', 'specialty'
@@ -55,7 +53,6 @@ def med(request):
     })
 
 
-# Регистрация пациента
 def regist(request):
     if request.user.is_authenticated:
         return redirect('lk')
@@ -131,7 +128,6 @@ def regist(request):
     })
 
 
-# Авторизация
 def bxod(request):
     if request.user.is_authenticated:
         return redirect('lk')
@@ -159,7 +155,6 @@ def bxod(request):
     })
 
 
-# Личный кабинет
 @login_required(login_url='bxod')
 def lk(request):
     user = request.user
@@ -189,6 +184,14 @@ def lk(request):
                 'slot__doctor__specialty'
             )
 
+            context['medical_records'] = MedicalRecord.objects.filter(
+                appointment__patient=patient
+            ).select_related(
+                'appointment__slot__doctor__user'
+            ).prefetch_related(
+                'prescriptions'
+            )
+
     elif role == 'doctor':
         doctor = DoctorProfile.objects.filter(user=user).first()
         context['doctor'] = doctor
@@ -210,9 +213,6 @@ def lk(request):
     return render(request, 'lk.html', context)
 
 
-
-# Таблица записей и свободное расписание
-# Расписание и запись пациента
 @login_required(login_url='bxod')
 def table(request):
     profile = UserProfile.objects.filter(user=request.user).first()
@@ -224,13 +224,17 @@ def table(request):
     else:
         role = 'unknown'
 
-    # Обработка нажатия кнопки «Записаться»
     if request.method == 'POST':
         if role != 'patient':
-            messages.error(request, 'Записываться на приём могут только пациенты.')
+            messages.error(
+                request,
+                'Записываться на приём могут только пациенты.'
+            )
             return redirect('table')
 
-        patient = PatientProfile.objects.filter(user=request.user).first()
+        patient = PatientProfile.objects.filter(
+            user=request.user
+        ).first()
 
         if not patient:
             messages.error(request, 'Профиль пациента не найден.')
@@ -263,11 +267,13 @@ def table(request):
                     )
 
         except (TimeSlot.DoesNotExist, ValueError, TypeError):
-            messages.error(request, 'Это время уже недоступно для записи.')
+            messages.error(
+                request,
+                'Это время уже недоступно для записи.'
+            )
 
         return redirect('table')
 
-    # Свободное время
     free_slots = TimeSlot.objects.filter(
         is_available=True,
         start_time__gte=timezone.now()
@@ -276,16 +282,27 @@ def table(request):
         'doctor__specialty'
     ).order_by('start_time')
 
-    # Записи в зависимости от роли
+    specialties = Specialty.objects.all()
+    selected_specialty = request.GET.get('specialty', '').strip()
+
+    if selected_specialty:
+        free_slots = free_slots.filter(
+            doctor__specialty_id=selected_specialty
+        )
+
     if role == 'patient':
-        patient = PatientProfile.objects.filter(user=request.user).first()
+        patient = PatientProfile.objects.filter(
+            user=request.user
+        ).first()
 
         appointments = Appointment.objects.filter(
             patient=patient
         ) if patient else Appointment.objects.none()
 
     elif role == 'doctor':
-        doctor = DoctorProfile.objects.filter(user=request.user).first()
+        doctor = DoctorProfile.objects.filter(
+            user=request.user
+        ).first()
 
         appointments = Appointment.objects.filter(
             slot__doctor=doctor
@@ -307,21 +324,21 @@ def table(request):
         'free_slots': free_slots,
         'appointments': appointments,
         'role': role,
+        'specialties': specialties,
+        'selected_specialty': selected_specialty,
     })
 
-# Выход из аккаунта
+
 @login_required(login_url='bxod')
 def logout_view(request):
     logout(request)
     return redirect('main')
 
 
-# Управление расписанием для администратора
 @login_required(login_url='bxod')
 def manage_schedule(request):
     profile = UserProfile.objects.filter(user=request.user).first()
 
-    # Проверяем права администратора
     if not request.user.is_superuser and (
         not profile or profile.role != 'admin'
     ):
@@ -332,7 +349,6 @@ def manage_schedule(request):
     if request.method == 'POST':
         action = request.POST.get('action')
 
-        # Удаление свободного времени
         if action == 'delete':
             slot_id = request.POST.get('slot_id')
 
@@ -352,7 +368,6 @@ def manage_schedule(request):
 
             return redirect('manage_schedule')
 
-        # Добавление нового времени
         if action == 'add':
             doctor_id = request.POST.get('doctor')
             start_text = request.POST.get('start_time')
@@ -423,7 +438,6 @@ def manage_schedule(request):
 def manage_doctors(request):
     profile = UserProfile.objects.filter(user=request.user).first()
 
-    # Проверка прав администратора
     if not request.user.is_superuser and (
         not profile or profile.role != 'admin'
     ):
@@ -434,28 +448,32 @@ def manage_doctors(request):
     if request.method == 'POST':
         action = request.POST.get('action')
 
-        # Добавление специальности
         if action == 'add_specialty':
-            specialty_name = request.POST.get('specialty_name', '').strip()
+            specialty_name = request.POST.get(
+                'specialty_name', ''
+            ).strip()
+
             specialty_description = request.POST.get(
                 'specialty_description', ''
             ).strip()
 
             if not specialty_name:
                 error = 'Введите название специальности.'
+
             elif Specialty.objects.filter(
                 name__iexact=specialty_name
             ).exists():
                 error = 'Такая специальность уже существует.'
+
             else:
                 Specialty.objects.create(
                     name=specialty_name,
                     description=specialty_description
                 )
+
                 messages.success(request, 'Специальность добавлена!')
                 return redirect('manage_doctors')
 
-        # Добавление врача
         elif action == 'add_doctor':
             username = request.POST.get('username', '').strip()
             first_name = request.POST.get('first_name', '').strip()
@@ -463,7 +481,9 @@ def manage_doctors(request):
             email = request.POST.get('email', '').strip().lower()
             password = request.POST.get('password', '')
             phone = request.POST.get('phone', '').strip()
-            experience_text = request.POST.get('experience', '0').strip()
+            experience_text = request.POST.get(
+                'experience', '0'
+            ).strip()
             room = request.POST.get('room', '').strip()
             description = request.POST.get('description', '').strip()
             specialty_id = request.POST.get('specialty', '')
@@ -472,20 +492,31 @@ def manage_doctors(request):
                 id=specialty_id
             ).first()
 
-            if not all([username, first_name, last_name, email, password]):
+            if not all([
+                username, first_name, last_name, email, password
+            ]):
                 error = 'Заполните все обязательные поля.'
-            elif User.objects.filter(username__iexact=username).exists():
+
+            elif User.objects.filter(
+                username__iexact=username
+            ).exists():
                 error = 'Такой логин уже занят.'
-            elif User.objects.filter(email__iexact=email).exists():
+
+            elif User.objects.filter(
+                email__iexact=email
+            ).exists():
                 error = 'Такая почта уже зарегистрирована.'
+
             elif not specialty:
                 error = 'Выберите специальность.'
+
             else:
                 try:
                     experience = int(experience_text)
 
                     if experience < 0:
                         error = 'Стаж не может быть отрицательным.'
+
                 except ValueError:
                     experience = 0
                     error = 'Укажите корректный стаж.'
@@ -530,3 +561,95 @@ def manage_doctors(request):
     })
 
 
+@login_required(login_url='bxod')
+def medical_record(request, appointment_id):
+    profile = UserProfile.objects.filter(user=request.user).first()
+
+    if not profile or profile.role != 'doctor':
+        return HttpResponseForbidden('Доступ запрещён.')
+
+    doctor = DoctorProfile.objects.filter(
+        user=request.user
+    ).first()
+
+    if not doctor:
+        return HttpResponseForbidden('Профиль врача не найден.')
+
+    appointment = get_object_or_404(
+        Appointment.objects.select_related(
+            'patient__user',
+            'slot__doctor__user'
+        ),
+        id=appointment_id,
+        slot__doctor=doctor
+    )
+
+    record = MedicalRecord.objects.filter(
+        appointment=appointment
+    ).first()
+
+    if request.method == 'POST':
+        diagnosis = request.POST.get('diagnosis', '').strip()
+        notes = request.POST.get('notes', '').strip()
+        recommendations = request.POST.get(
+            'recommendations', ''
+        ).strip()
+
+        medication = request.POST.get('medication', '').strip()
+        dosage = request.POST.get('dosage', '').strip()
+        instructions = request.POST.get('instructions', '').strip()
+
+        if not diagnosis:
+            messages.error(request, 'Укажите диагноз.')
+            return redirect(
+                'medical_record',
+                appointment_id=appointment.id
+            )
+
+        if bool(medication) != bool(dosage):
+            messages.error(
+                request,
+                'Для рецепта укажите и лекарство, и дозировку.'
+            )
+            return redirect(
+                'medical_record',
+                appointment_id=appointment.id
+            )
+
+        with transaction.atomic():
+            if record:
+                record.diagnosis = diagnosis
+                record.notes = notes
+                record.recommendations = recommendations
+                record.save()
+
+            else:
+                record = MedicalRecord.objects.create(
+                    appointment=appointment,
+                    diagnosis=diagnosis,
+                    notes=notes,
+                    recommendations=recommendations
+                )
+
+            if medication and dosage:
+                Prescription.objects.create(
+                    medical_record=record,
+                    medication=medication,
+                    dosage=dosage,
+                    instructions=instructions
+                )
+
+        messages.success(request, 'Медицинская карта сохранена.')
+
+        return redirect(
+            'medical_record',
+            appointment_id=appointment.id
+        )
+
+    prescriptions = record.prescriptions.all() if record else []
+
+    return render(request, 'medical_record.html', {
+        'appointment': appointment,
+        'record': record,
+        'prescriptions': prescriptions,
+    })

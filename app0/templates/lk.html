@@ -5,106 +5,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Личный кабинет</title>
+    <title>Личный кабинет — NerpaMed</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <header>
-        <a href="{% url 'main' %}">
-            <img src="{% static 'img/Nerpa.png' %}" alt="NerpaMed" height="100" width="100" style="border-radius: 50%;">
-        </a>
-        <div class="men">
-            <a href="{% url 'lk' %}">Личный кабинет</a>
-            <a href="{% url 'med' %}">Наши врачи</a>
-            <a href="{% url 'table' %}">Расписание</a>
-            <a href="{% url 'logout' %}">Выход</a>
-        </div>
-    </header>
 
-    <main>
-        <h1>Личный кабинет</h1>
+<header>
+    <a href="{% url 'main' %}">
+        <img src="{% static 'img/Nerpa.png' %}" alt="NerpaMed" height="100" width="100" style="border-radius: 50%;">
+    </a>
 
-        <p>Здравствуйте, {{ request.user.first_name|default:request.user.username }}!</p>
+     <nav class="men">
+        <a href="{% url 'lk' %}">Личный кабинет</a>
+        <a href="{% url 'med' %}">Наши врачи</a>
+        <a href="{% url 'table' %}">Расписание</a>
+          {% if user.is_authenticated %}
+            <a href="{% url 'logout' %}" class="login-btn">Выход</a>
+        {% else %}
+            <a href="{% url 'bxod' %}" class="login-btn">Вход</a>
+        {% endif %}
+    </nav>
+</header>
+
+<main class="lk-page">
+
+    <h1 class="lk-title">Личный кабинет</h1>
+
+    <div class="lk-container">
+
+        <p class="lk-greeting">
+            Здравствуйте,
+            <strong>{{ request.user.first_name|default:request.user.username }}!</strong>
+        </p>
 
         {% if role == 'patient' %}
-            <h2>Кабинет пациента</h2>
+
+            <h2 class="lk-role-title">Кабинет пациента</h2>
 
             {% if patient %}
-                <p>Телефон: {{ patient.phone }}</p>
-                <p>Дата рождения: {{ patient.birth_date|default:"Не указана" }}</p>
-                <p>Адрес: {{ patient.address|default:"Не указан" }}</p>
+                <div class="lk-info-card">
+                    <h3>Моя информация</h3>
+                    <p>Телефон: {{ patient.phone }}</p>
+                    <p>Дата рождения: {{ patient.birth_date|default:"Не указана" }}</p>
+                    <p>Адрес: {{ patient.address|default:"Не указан" }}</p>
+                </div>
             {% endif %}
 
-            <h3>Мои записи</h3>
+            <div class="lk-section">
+                <h2>Мои записи</h2>
 
-            {% if appointments %}
                 {% for appointment in appointments %}
-                    <div>
-                        <p>Талон №{{ appointment.ticket_number }}</p>
-                        <p>Врач: {{ appointment.slot.doctor.user.get_full_name }}</p>
-                        <p>Специальность: {{ appointment.slot.doctor.specialty.name }}</p>
-                        <p>Дата и время: {{ appointment.slot.start_time|date:"d.m.Y H:i" }}</p>
-                        <p>Статус: {{ appointment.get_status_display }}</p>
+                    <div class="lk-item">
+                        <p class="lk-ticket">Талон №{{ appointment.ticket_number }}</p>
+                        <p><strong>Врач:</strong> {{ appointment.slot.doctor.user.get_full_name }}</p>
+                        <p><strong>Специальность:</strong> {{ appointment.slot.doctor.specialty.name }}</p>
+                        <p><strong>Дата и время:</strong> {{ appointment.slot.start_time|date:"d.m.Y H:i" }}</p>
+                        <p><strong>Статус:</strong> {{ appointment.get_status_display }}</p>
                     </div>
-                    <hr>
+                {% empty %}
+                    <p class="lk-empty">У вас пока нет записей.</p>
                 {% endfor %}
-            {% else %}
-                <p>У вас пока нет записей.</p>
-            {% endif %}
+            </div>
+
+            <div class="lk-section">
+                <h2>Мои диагнозы и назначения</h2>
+
+                {% for record in medical_records %}
+                    <div class="lk-item">
+                        <p><strong>Врач:</strong> {{ record.appointment.slot.doctor.user.get_full_name }}</p>
+                        <p><strong>Дата приёма:</strong> {{ record.appointment.slot.start_time|date:"d.m.Y H:i" }}</p>
+                        <p><strong>Диагноз:</strong> {{ record.diagnosis }}</p>
+                        <p><strong>Заметки врача:</strong> {{ record.notes|default:"Нет" }}</p>
+                        <p><strong>Рекомендации:</strong> {{ record.recommendations|default:"Нет" }}</p>
+
+                        <h3 class="lk-subtitle">Рецепты</h3>
+
+                        {% for prescription in record.prescriptions.all %}
+                            <div class="lk-prescription">
+                                <p><strong>Лекарство:</strong> {{ prescription.medication }}</p>
+                                <p><strong>Дозировка:</strong> {{ prescription.dosage }}</p>
+                                <p><strong>Инструкции:</strong> {{ prescription.instructions|default:"Не указаны" }}</p>
+                            </div>
+                        {% empty %}
+                            <p>Рецептов пока нет.</p>
+                        {% endfor %}
+                    </div>
+                {% empty %}
+                    <p class="lk-empty">Назначений пока нет.</p>
+                {% endfor %}
+            </div>
 
         {% elif role == 'doctor' %}
-            <h2>Кабинет врача</h2>
 
-            {% if doctor %}
-                <p>Специальность: {{ doctor.specialty.name }}</p>
-                <p>Телефон: {{ doctor.phone }}</p>
-                <p>Стаж: {{ doctor.experience }} лет</p>
-                <p>Кабинет: {{ doctor.room }}</p>
-            {% endif %}
+            <h2 class="lk-role-title">Кабинет врача</h2>
 
-            <h3>Мои пациенты и приёмы</h3>
+            <div class="lk-dashboard">
 
-            {% if appointments %}
-                {% for appointment in appointments %}
-                    <div>
-                        <p>Пациент: {{ appointment.patient.user.get_full_name }}</p>
-                        <p>Дата и время: {{ appointment.slot.start_time|date:"d.m.Y H:i" }}</p>
-                        <p>Статус: {{ appointment.get_status_display }}</p>
+                <section class="lk-dashboard-main">
+                    <h3>Мои приёмы</h3>
+
+                    <div class="lk-dashboard-list">
+                        {% for appointment in appointments %}
+                            <div class="lk-dashboard-item">
+                                <p><strong>Пациент:</strong> {{ appointment.patient.user.get_full_name }}</p>
+                                <p><strong>Дата:</strong> {{ appointment.slot.start_time|date:"d.m.Y H:i" }}</p>
+                                <p><strong>Статус:</strong> {{ appointment.get_status_display }}</p>
+
+                                <a href="{% url 'medical_record' appointment.pk %}" class="lk-dashboard-link">
+                                    Открыть медицинскую карту
+                                </a>
+                            </div>
+                        {% empty %}
+                            <p class="lk-empty">Приёмов пока нет.</p>
+                        {% endfor %}
                     </div>
-                    <hr>
-                {% endfor %}
-            {% else %}
-                <p>Приёмов пока нет.</p>
-            {% endif %}
+                </section>
+
+                <section class="lk-dashboard-side">
+                    <a href="{% url 'table' %}" class="lk-dashboard-card">
+                        <span class="lk-dashboard-icon">📅</span>
+                        <strong>Расписание</strong>
+                    </a>
+
+                </section>
+
+            </div>
 
         {% elif role == 'admin' %}
-            <h2>Панель администратора</h2>
-            <p>
-             <a href="{% url 'manage' %}">Управление расписанием</a>
-            </p>
-            <p>
-             <a href="{% url 'manage_doctors' %}">Управление врачами</a>
-                </p>
-            <p>Всего записей: {{ appointments|length }}</p>
 
-            {% for appointment in appointments %}
-                <div>
-                    <p>Талон №{{ appointment.ticket_number }}</p>
-                    <p>Пациент: {{ appointment.patient.user.get_full_name }}</p>
-                    <p>Врач: {{ appointment.slot.doctor.user.get_full_name }}</p>
-                    <p>Дата и время: {{ appointment.slot.start_time|date:"d.m.Y H:i" }}</p>
-                    <p>Статус: {{ appointment.get_status_display }}</p>
-                </div>
-                <hr>
-            {% empty %}
-                <p>Записей пока нет.</p>
-            {% endfor %}
+            <h2 class="lk-role-title">Панель администратора</h2>
+
+            <div class="lk-dashboard">
+
+                <section class="lk-dashboard-main">
+                    <h3>Все записи</h3>
+
+                    <p class="lk-count">
+                        Всего записей: {{ appointments|length }}
+                    </p>
+
+                    <div class="lk-dashboard-list">
+                        {% for appointment in appointments %}
+                            <div class="lk-dashboard-item">
+                                <p class="lk-ticket">
+                                    Талон №{{ appointment.ticket_number }}
+                                </p>
+                                <p>Пациент: {{ appointment.patient.user.get_full_name }}</p>
+                                <p>Врач: {{ appointment.slot.doctor.user.get_full_name }}</p>
+                                <p>Дата: {{ appointment.slot.start_time|date:"d.m.Y H:i" }}</p>
+                                <p>Статус: {{ appointment.get_status_display }}</p>
+                            </div>
+                        {% empty %}
+                            <p class="lk-empty">Записей пока нет.</p>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section class="lk-dashboard-side">
+
+                    <a href="{% url 'manage' %}" class="lk-dashboard-card">
+                                    <img src="{% static 'img/andrsrxn_calendar-days.png' %}" alt="" width="55" height="55">
+                        <strong>Управление расписанием</strong>
+                    </a>
+
+                    <a href="{% url 'manage_doctors' %}" class="lk-dashboard-card">
+                        <strong>Управление врачами</strong>
+                    </a>
+
+                </section>
+
+            </div>
 
         {% else %}
-            <p>Для вашего аккаунта не настроена роль. Обратитесь к администратору.</p>
+
+            <p class="lk-empty">
+                Для вашего аккаунта не настроена роль. Обратитесь к администратору.
+            </p>
+
         {% endif %}
 
-        <a href="{% url 'table' %}">Перейти к расписанию записей</a>
-    </main>
+        <a href="{% url 'table' %}" class="lk-bottom-button">
+            Перейти к расписанию
+        </a>
+
+    </div>
+
+</main>
+
+<footer class="footer">
+    <div class="footer-logo">
+        <a href="{% url 'main' %}">
+            <img src="{% static 'img/Nerpa.png' %}" alt="NerpaMed" width="100">
+        </a>
+    </div>
+
+    <div class="footer-column">
+        <a href="{% url 'lk' %}">Личный кабинет</a>
+        <a href="{% url 'med' %}">Наши врачи</a>
+        <a href="{% url 'table' %}">Расписание</a>
+    </div>
+
+    <div class="footer-column">
+        <a href="{% url 'main' %}">О нас</a>
+        <a href="{% url 'main' %}">Цены</a>
+    </div>
+
+    <div class="footer-column">
+        <a href="{% url 'main' %}">Контакты</a>
+    </div>
+
+    <div class="footer-column">
+        <a href="{% url 'bxod' %}">Вход</a>
+    </div>
+</footer>
+
 </body>
 </html>

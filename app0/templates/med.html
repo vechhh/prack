@@ -9,56 +9,122 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
+
     <header>
         <a href="{% url 'main' %}">
-            <img src="{% static 'img/Nerpa.png' %}" alt="NerpaMed" height="100" width="100" style="border-radius: 50%;">
+            <img src="{% static 'img/Nerpa.png' %}" alt="" height="100" width="100" style="border-radius: 50%;">
         </a>
         <div class="men">
             <a href="{% url 'lk' %}">Личный кабинет</a>
             <a href="{% url 'med' %}">Наши врачи</a>
             <a href="{% url 'table' %}">Расписание</a>
-            <a href="{% url 'bxod' %}">Вход</a>
+           <a href="{% url 'logout' %}" class="login-btn">Выход</a>
         </div>
     </header>
 
-    <main>
+    <main class="med-main">
+
         <h1>Наши врачи</h1>
 
-        <form method="GET">
-            <input
-                type="text"
-                name="search"
-                placeholder="Поиск врача"
-                value="{{ search }}"
-            >
+        <section class="med-container">
 
-            <select name="specialty">
-                <option value="">Все специальности</option>
-                {% for specialty in specialties %}
-                    <option value="{{ specialty.id }}"
-                        {% if selected_specialty == specialty.id|stringformat:"s" %}selected{% endif %}>
-                        {{ specialty.name }}
-                    </option>
-                {% endfor %}
-            </select>
+            <form method="GET" class="med-filters">
 
-            <button type="submit">Найти</button>
-        </form>
-
-        <section>
-            {% for doctor in doctors %}
-                <div>
-                    <h2>{{ doctor.user.get_full_name }}</h2>
-                    <p>Специальность: {{ doctor.specialty.name }}</p>
-                    <p>Стаж работы: {{ doctor.experience }} лет</p>
-                    <p>Кабинет: {{ doctor.room|default:"Не указан" }}</p>
-                    <p>{{ doctor.description }}</p>
+                <div class="med-search">
+                    <input
+                        type="text"
+                        name="search"
+                        placeholder="Поиск врача"
+                        value="{{ request.GET.search }}"
+                    >
+                    <button type="submit">Найти</button>
                 </div>
-                <hr>
-            {% empty %}
-                <p>Пока врачей нет.</p>
-            {% endfor %}
+
+                <select name="specialty" onchange="this.form.submit()">
+                    <option value="">Все специальности</option>
+
+                    {% for specialty in specialties %}
+                        <option value="{{ specialty.id }}"
+                            {% if request.GET.specialty == specialty.id|stringformat:"s" %}selected{% endif %}>
+                            {{ specialty.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+            </form>
+
+            <div class="med-doctors">
+
+                {% for doctor in doctors %}
+
+                    <div class="med-doctor-card">
+
+                        <div class="med-doctor-info">
+
+                            <h2>
+                                {{ doctor.user.get_full_name|default:doctor.user.username }}
+                            </h2>
+
+                            <p>
+                                Специальность: {{ doctor.specialty.name }}
+                            </p>
+
+                            <p>
+                                Стаж: {{ doctor.experience }} лет
+                            </p>
+
+                            {% if doctor.room %}
+                                <p>Кабинет: {{ doctor.room }}</p>
+                            {% endif %}
+
+                            {% if doctor.description %}
+                                <p>{{ doctor.description }}</p>
+                            {% endif %}
+
+                        </div>
+
+                        <a href="{% url 'table' %}" class="med-doctor-button">
+                            Записаться на приём
+                        </a>
+
+                    </div>
+
+                {% empty %}
+
+                    <p class="med-empty">
+                        Врачи не найдены.
+                    </p>
+
+                {% endfor %}
+
+            </div>
+
         </section>
+
     </main>
+
+    <footer class="med-footer">
+
+        <img src="{% static 'img/Nerpa.png' %}" alt="NerpaMed">
+
+        <div>
+            <a href="{% url 'lk' %}">Личный кабинет</a>
+            <a href="{% url 'med' %}">Наши врачи</a>
+            <a href="{% url 'table' %}">Расписание</a>
+        </div>
+
+        <div>
+            <a href="#">О нас</a>
+            <a href="#">Цены</a>
+        </div>
+
+        <div>
+            <a href="#">Контакты</a>
+        </div>
+
+        <a href="{% url 'bxod' %}">Вход</a>
+
+    </footer>
+
 </body>
 </html>

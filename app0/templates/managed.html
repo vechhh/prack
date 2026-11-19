@@ -5,10 +5,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Управление врачами</title>
+    <title>Управление врачами — NerpaMed</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
+
     <header>
         <a href="{% url 'main' %}">
             <img src="{% static 'img/Nerpa.png' %}" alt="NerpaMed" height="100" width="100" style="border-radius: 50%;">
@@ -17,125 +18,133 @@
             <a href="{% url 'lk' %}">Личный кабинет</a>
             <a href="{% url 'med' %}">Наши врачи</a>
             <a href="{% url 'table' %}">Расписание</a>
-            <a href="{% url 'logout' %}">Выход</a>
+           <a href="{% url 'bxod' %}" class="login-btn">Вход</a>
         </div>
     </header>
 
-    <main>
-        <h1>Управление врачами</h1>
+    <main class="md-page">
+        <h1 class="md-title">Управление врачами</h1>
 
         {% if messages %}
-            {% for message in messages %}
-                <p>{{ message }}</p>
-            {% endfor %}
+            <div class="md-messages">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
         {% endif %}
 
         {% if error %}
-            <p>{{ error }}</p>
+            <p class="md-error">{{ error }}</p>
         {% endif %}
 
-        <h2>Добавить специальность</h2>
+        <section class="md-section">
+            <h2>Добавить специальность</h2>
 
-        <form method="POST">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="add_specialty">
+            <form method="POST" class="md-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_specialty">
 
-            <p>
-                <label>Название специальности:</label><br>
-                <input type="text" name="specialty_name" required>
-            </p>
+                <div class="md-field">
+                    <label for="specialty_name">Название специальности</label>
+                    <input type="text" id="specialty_name" name="specialty_name" required>
+                </div>
 
-            <p>
-                <label>Описание:</label><br>
-                <textarea name="specialty_description"></textarea>
-            </p>
+                <div class="md-field">
+                    <label for="specialty_description">Описание</label>
+                    <textarea id="specialty_description" name="specialty_description" rows="3"></textarea>
+                </div>
 
-            <button type="submit">Добавить специальность</button>
-        </form>
+                <button type="submit" class="md-button">Добавить специальность</button>
+            </form>
+        </section>
 
-        <hr>
+        <section class="md-section">
+            <h2>Добавить врача</h2>
 
-        <h2>Добавить врача</h2>
+            <form method="POST" class="md-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_doctor">
 
-        <form method="POST">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="add_doctor">
+                <div class="md-fields-grid">
+                    <div class="md-field">
+                        <label for="first_name">Имя</label>
+                        <input type="text" id="first_name" name="first_name" required>
+                    </div>
 
-            <p>
-                <label>Имя:</label><br>
-                <input type="text" name="first_name" required>
-            </p>
+                    <div class="md-field">
+                        <label for="last_name">Фамилия</label>
+                        <input type="text" id="last_name" name="last_name" required>
+                    </div>
 
-            <p>
-                <label>Фамилия:</label><br>
-                <input type="text" name="last_name" required>
-            </p>
+                    <div class="md-field">
+                        <label for="username">Логин для входа</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
 
-            <p>
-                <label>Логин для входа:</label><br>
-                <input type="text" name="username" required>
-            </p>
+                    <div class="md-field">
+                        <label for="email">Электронная почта</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
 
-            <p>
-                <label>Электронная почта:</label><br>
-                <input type="email" name="email" required>
-            </p>
+                    <div class="md-field">
+                        <label for="password">Пароль</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
 
-            <p>
-                <label>Пароль:</label><br>
-                <input type="password" name="password" required>
-            </p>
+                    <div class="md-field">
+                        <label for="phone">Телефон</label>
+                        <input type="text" id="phone" name="phone">
+                    </div>
 
-            <p>
-                <label>Телефон:</label><br>
-                <input type="text" name="phone">
-            </p>
+                    <div class="md-field">
+                        <label for="specialty">Специальность</label>
+                        <select id="specialty" name="specialty" required>
+                            <option value="">Выберите специальность</option>
+                            {% for specialty in specialties %}
+                                <option value="{{ specialty.id }}">{{ specialty.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-            <p>
-                <label>Специальность:</label><br>
-                <select name="specialty" required>
-                    <option value="">Выберите специальность</option>
-                    {% for specialty in specialties %}
-                        <option value="{{ specialty.id }}">
-                            {{ specialty.name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </p>
+                    <div class="md-field">
+                        <label for="experience">Стаж работы (лет)</label>
+                        <input type="number" id="experience" name="experience" min="0" value="0">
+                    </div>
 
-            <p>
-                <label>Стаж работы (лет):</label><br>
-                <input type="number" name="experience" min="0" value="0">
-            </p>
+                    <div class="md-field">
+                        <label for="room">Кабинет</label>
+                        <input type="text" id="room" name="room">
+                    </div>
+                </div>
 
-            <p>
-                <label>Кабинет:</label><br>
-                <input type="text" name="room">
-            </p>
+                <div class="md-field">
+                    <label for="description">Описание врача</label>
+                    <textarea id="description" name="description" rows="4"></textarea>
+                </div>
 
-            <p>
-                <label>Описание врача:</label><br>
-                <textarea name="description"></textarea>
-            </p>
+                <button type="submit" class="md-button">Добавить врача</button>
+            </form>
+        </section>
 
-            <button type="submit">Добавить врача</button>
-        </form>
+        <section class="md-section">
+            <h2>Список врачей</h2>
 
-        <hr>
-
-        <h2>Список врачей</h2>
-
-        {% for doctor in doctors %}
-            <div>
-                <h3>{{ doctor.user.get_full_name }}</h3>
-                <p>Специальность: {{ doctor.specialty.name }}</p>
-                <p>Стаж: {{ doctor.experience }} лет</p>
-                <p>Кабинет: {{ doctor.room }}</p>
+            <div class="md-doctors">
+                {% for doctor in doctors %}
+                    <div class="md-doctor-card">
+                        <div>
+                            <h3>{{ doctor.user.get_full_name }}</h3>
+                            <p><strong>Специальность:</strong> {{ doctor.specialty.name }}</p>
+                            <p><strong>Стаж:</strong> {{ doctor.experience }} лет</p>
+                            <p><strong>Кабинет:</strong> {{ doctor.room }}</p>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="md-empty">Врачи пока не добавлены.</p>
+                {% endfor %}
             </div>
-            <hr>
-        {% empty %}
-            <p>Врачи пока не добавлены.</p>
-        {% endfor %}
+        </section>
     </main>
+
 </body>
 </html>

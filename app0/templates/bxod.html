@@ -17,37 +17,41 @@
             <a href="{% url 'lk' %}">Личный кабинет</a>
             <a href="{% url 'med' %}">Наши врачи</a>
             <a href="{% url 'table' %}">Расписание</a>
-            <a href="{% url 'bxod' %}">Вход</a>
+             <a href="{% url 'bxod' %}" class="login-btn">Вход</a>
         </div>
     </header>
 
-    <main>
-        <h1>Вход в личный кабинет</h1>
+  <main class="login-main">
+    <h1>Вход в личный кабинет</h1>
+
+    <div class="login-container">
 
         {% if error %}
-            <p>{{ error }}</p>
+            <p class="login-error">{{ error }}</p>
         {% endif %}
 
         <form method="POST">
             {% csrf_token %}
 
             <p>
-                <label for="username">Логин:</label><br>
+                <label for="username">Логин:</label>
                 <input type="text" id="username" name="username" required>
             </p>
 
             <p>
-                <label for="password">Пароль:</label><br>
+                <label for="password">Пароль:</label>
                 <input type="password" id="password" name="password" required>
             </p>
 
             <button type="submit">Войти</button>
         </form>
 
-        <p>
+        <p class="login-register">
             Нет аккаунта?
             <a href="{% url 'regist' %}">Зарегистрироваться</a>
         </p>
-    </main>
+
+    </div>
+</main>
 </body>
 </html>
