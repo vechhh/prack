@@ -530,6 +530,11 @@ def manage_doctors(request):
 
             else:
                 try:
+                     validate_password(password)
+                except ValidationError as e:
+                    error = ' '.join(e.messages)
+
+                try:
                     experience = int(experience_text)
 
                     if experience < 0:
@@ -538,6 +543,33 @@ def manage_doctors(request):
                 except ValueError:
                     experience = 0
                     error = 'Укажите корректный стаж.'
+
+                if not error:
+                    with transaction.atomic():
+                        user = User.objects.create_user(
+                            username=username,
+                            password=password,
+                            first_name=first_name,
+                            last_name=last_name,
+                            email=email
+                        )
+
+                        UserProfile.objects.create(
+                            user=user,
+                            role='doctor'
+                        )
+
+                        DoctorProfile.objects.create(
+                            user=user,
+                            specialty=specialty,
+                            phone=phone,
+                            experience=experience,
+                            room=room,
+                            description=description
+                        )
+
+                    messages.success(request, 'Врач успешно добавлен!')
+                    return redirect('manage_doctors')
 
                 if not error:
                     with transaction.atomic():
