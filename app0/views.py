@@ -650,12 +650,20 @@ def medical_record(request, appointment_id):
                 )
 
             if medication and dosage:
-                Prescription.objects.create(
-                    medical_record=record,
-                    medication=medication,
-                    dosage=dosage,
-                    instructions=instructions
-                )
+                 prescription = record.prescriptions.first()
+
+                 if prescription:
+                    prescription.medication = medication
+                    prescription.dosage = dosage
+                    prescription.instructions = instructions
+                    prescription.save()
+                 else:
+                    Prescription.objects.create(
+                        medical_record=record,
+                        medication=medication,
+                        dosage=dosage,
+                        instructions=instructions
+                    )
 
         messages.success(request, 'Медицинская карта сохранена.')
 
