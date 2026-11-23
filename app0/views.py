@@ -99,6 +99,9 @@ def regist(request):
 
                 if birth_date is None:
                     error = 'Неверный формат даты рождения.'
+                elif birth_date > timezone.localdate():
+                    error = 'Дата рождения не может быть в будущем.'
+
 
             if not error:
                 with transaction.atomic():
