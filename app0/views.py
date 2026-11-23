@@ -11,6 +11,7 @@ from django.http import HttpResponseForbidden
 import uuid
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+import re
 
 from .models import (
     UserProfile,
@@ -85,6 +86,9 @@ def regist(request):
 
         elif password1 != password2:
             error = 'Пароли не совпадают.'
+
+        elif not re.fullmatch(r'\+?[0-9]{10,15}', phone):
+             error = 'Введите корректный номер телефона (от 10 до 15 цифр).'
 
         else:
             try:
