@@ -12,6 +12,7 @@ import uuid
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 import re
+from django.core.validators import validate_email
 
 from .models import (
     UserProfile,
@@ -83,6 +84,10 @@ def regist(request):
 
         elif User.objects.filter(email__iexact=email).exists():
             error = 'Такая электронная почта уже зарегистрирована.'
+            try:
+                validate_email(email)
+            except ValidationError:
+                error = 'Введите корректный адрес электронной почты.'
 
         elif password1 != password2:
             error = 'Пароли не совпадают.'
