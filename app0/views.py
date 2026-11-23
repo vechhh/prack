@@ -9,6 +9,8 @@ from django.db.models import Q
 from django.utils import timezone
 from django.http import HttpResponseForbidden
 import uuid
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 from .models import (
     UserProfile,
@@ -42,7 +44,6 @@ def med(request):
 
     if specialty:
         doctors = doctors.filter(specialty_id=specialty)
-
     specialties = Specialty.objects.all()
 
     return render(request, 'med.html', {
@@ -86,6 +87,11 @@ def regist(request):
             error = 'Пароли не совпадают.'
 
         else:
+            try:
+                validate_password(password1)
+            except ValidationError as e:
+                 error = ' '.join(e.messages)
+
             birth_date = None
 
             if birth_date_text:
