@@ -497,6 +497,11 @@ def manage_doctors(request):
             first_name = request.POST.get('first_name', '').strip()
             last_name = request.POST.get('last_name', '').strip()
             email = request.POST.get('email', '').strip().lower()
+            email_error = False
+            try:
+                validate_email(email)
+            except ValidationError:
+                email_error = True
             password = request.POST.get('password', '')
             phone = request.POST.get('phone', '').strip()
             experience_text = request.POST.get(
@@ -520,6 +525,8 @@ def manage_doctors(request):
             ).exists():
                 error = 'Такой логин уже занят.'
 
+            elif email_error:
+                 error = 'Введите корректный адрес электронной почты.'
             elif User.objects.filter(
                 email__iexact=email
             ).exists():
