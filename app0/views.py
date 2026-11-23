@@ -527,6 +527,8 @@ def manage_doctors(request):
 
             elif email_error:
                  error = 'Введите корректный адрес электронной почты.'
+            elif not re.fullmatch(r'\+?[0-9]{10,15}', phone):
+                 error = 'Введите корректный номер телефона (от 10 до 15 цифр).'
             elif User.objects.filter(
                 email__iexact=email
             ).exists():
