@@ -1,0 +1,22 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Страница не найдена</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <main style="text-align:center; padding:80px 20px;">
+        <h1 style="font-size:80px;">404</h1>
+        <h2>Страница не найдена</h2>
+        <p>К сожалению, такой страницы или записи не существует.</p>
+        <p>Проверьте адрес или перейдите на главную страницу.</p>
+        <a href="{% url 'main' %}">На главную</a>
+        <br><br>
+        <a href="{% url 'med' %}">К списку врачей</a>
+    </main>
+</body>
+</html>

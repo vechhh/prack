@@ -30,4 +30,10 @@ urlpatterns = [
     path('manage/', views.manage_schedule, name='manage'),
     path('doctors-manage/', views.manage_doctors, name='manage_doctors'),
     path('medical-record/<int:appointment_id>/', views.medical_record, name='medical_record'),
+    path('test-error-403/', views.test_403),
+    path('test-error-500/', views.test_500),
+
 ]
+handler403 = 'app0.views.custom_403'
+handler404 = 'app0.views.custom_404'
+handler500 = 'app0.views.custom_500'

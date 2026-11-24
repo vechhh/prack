@@ -13,6 +13,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 import re
 from django.core.validators import validate_email
+from django.core.exceptions import PermissionDenied
 
 from .models import (
     UserProfile,
@@ -720,3 +721,20 @@ def medical_record(request, appointment_id):
         'record': record,
         'prescriptions': prescriptions,
     })
+
+
+def custom_403(request, exception=None):
+    return render(request, '403.html', status=403)
+
+
+def custom_404(request, exception=None):
+    return render(request, '404.html', status=404)
+
+
+def custom_500(request):
+    return render(request, '500.html', status=500)
+
+def test_403(request):
+    raise PermissionDenied
+def test_500(request):
+    raise Exception("Тестовая ошибка сервера")
